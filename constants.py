@@ -67,28 +67,28 @@ talismans = {re.compile(k): v for k, v in {
     'SKELETON_TALISMAN': 'Skeleton Talisman',
     'COIN_TALISMAN': 'Talisman of Coins',
     'MAGNETIC_TALISMAN': 'Magnetic Talisman',
-    'GRAVITY_TALISMAN': 'Gravity Talisman', 
+    'GRAVITY_TALISMAN': 'Gravity Talisman',
     'VILLAGE_TALISMAN': 'Village Affinity Talisman',
     'MINE_TALISMAN': 'Mine Affinity Talisman',
     'NIGHT_VISION_CHARM': 'Night Vision Charm',
     'LAVA_TALISMAN': 'Lava Talisman',
-    'SCAVENGER_TALISMAN': 'Scavenger Talisman', 
+    'SCAVENGER_TALISMAN': 'Scavenger Talisman',
     'WOLF_PAW': 'Wolf Paw',
-    'FIRE_TALISMAN': 'Fire Talisman',    
+    'FIRE_TALISMAN': 'Fire Talisman',
     'BROKEN_PIGGY_BANK': 'Broken Piggy Bank',
 	'CRACKED_PIGGY_BANK': 'Cracked Piggy Bank',
     'PIGGY_BANK': 'Piggy Bank',
-    'PIGS_FOOT': 'Pig\'s Foot', 
+    'PIGS_FOOT': 'Pig\'s Foot',
     'FROZEN_CHICKEN': 'Frozen Chicken',
     'FISH_AFFINITY_TALISMAN': 'Fish Affinity Talisman',
     'FARMER_ORB': 'Farmer Orb',
     'HASTE_RING': 'Haste Ring',
     'NEW_YEAR_CAKE_BAG': 'New Year Cake Bag',
-    'NIGHT_CRYSTAL': 'Night Crystal', 
+    'NIGHT_CRYSTAL': 'Night Crystal',
 	'DAY_CRYSTAL': 'Day Crystal',
     'FEATHER_ARTIFACT': 'Feather Artifact',
     'ARTIFACT_POTION_AFFINITY': 'Potion Affinity Artifact',
-    'HEALING_RING': 'Healing Ring', 
+    'HEALING_RING': 'Healing Ring',
     'CANDY_ARTIFACT': 'Candy Artifact',
     'EXPERIENCE_ARTIFACT': 'Experience Artifact',
     'MELODY_HAIR': '♪ Melody\'s Hair ♪',
@@ -111,7 +111,7 @@ talismans = {re.compile(k): v for k, v in {
     'CAMPFIRE_TALISMAN_(21|22|23|24|25|26|27|28|29)': 'Campfire God Badge',
 }.items()}
 
-skills = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'carpentry', 'runecrafting']
+skills = ['farming', 'mining', 'combat', 'foraging', 'fishing', 'enchanting', 'alchemy', 'taming', 'carpentry', 'runecrafting']
 cosmetic_skills = ['carpentry', 'runecrafting']
 slayers = ['zombie', 'spider', 'wolf']
 
@@ -132,9 +132,9 @@ slayer_level_requirements = {
 
 base_stats = {
 	'damage': 0,
-	'strength': 0, 
+	'strength': 0,
 	'crit chance': 20,
-	'crit damage': 50, 
+	'crit damage': 50,
 	'attack speed': 100,
 	'health': 100,
 	'defense': 0,
@@ -253,14 +253,14 @@ pet_xp = {
 
 pet_stats = {
     'SKELETON_HORSE': {
-        'name': 'Skeleton Horse', 
+        'name': 'Skeleton Horse',
         'stats': {
         },
         'type': 'combat',
         'icon': '/head/47effce35132c86ff72bcae77dfbb1d22587e94df3cbc2570ed17cf8973a'
     },
     'SNOWMAN': {
-        'name': 'Snowman', 
+        'name': 'Snowman',
         'stats': {
             'damage': lambda lvl: lvl // 3,
             'strength': lambda lvl: lvl // 3,
@@ -270,28 +270,28 @@ pet_stats = {
         'icon': '/head/11136616d8c4a87a54ce78a97b551610c2b2c8f6d410bc38b858f974b113b208'
     },
     'BAT': {
-        'name': 'Bat', 
+        'name': 'Bat',
         'stats': {
         },
         'type': 'mining',
         'icon': '/head/382fc3f71b41769376a9e92fe3adbaac3772b999b219c9d6b4680ba9983e527'
     },
     'SHEEP': {
-        'name': 'Sheep', 
+        'name': 'Sheep',
         'stats': {
         },
         'type': 'alchemy',
         'icon': '/head/64e22a46047d272e89a1cfa13e9734b7e12827e235c2012c1a95962874da0'
     },
     'CHICKEN': {
-        'name': 'Chicken', 
+        'name': 'Chicken',
         'stats': {
         },
         'type': 'farming',
         'icon': '/head/7f37d524c3eed171ce149887ea1dee4ed399904727d521865688ece3bac75e'
     },
     'WITHER_SKELETON': {
-        'name': 'Wither Skeleton', 
+        'name': 'Wither Skeleton',
         'stats': {
             'strength': lambda lvl: lvl // 4,
             'crit chance': lambda lvl: lvl // 20,
@@ -301,28 +301,28 @@ pet_stats = {
         'icon': '/head/f5ec964645a8efac76be2f160d7c9956362f32b6517390c59c3085034f050cff'
     },
     'SILVERFISH': {
-        'name': 'Silverfish', 
+        'name': 'Silverfish',
         'stats': {
         },
         'type': 'mining',
         'icon': '/head/da91dab8391af5fda54acd2c0b18fbd819b865e1a8f1d623813fa761e924540'
     },
     'RABBIT': {
-        'name': 'Rabbit', 
+        'name': 'Rabbit',
         'stats': {
         },
         'type': 'farming',
         'icon': '/head/117bffc1972acd7f3b4a8f43b5b6c7534695b8fd62677e0306b2831574b'
     },
     'HORSE': {
-        'name': 'Horse', 
+        'name': 'Horse',
         'stats': {
         },
         'type': 'combat',
         'icon': '/head/36fcd3ec3bc84bafb4123ea479471f9d2f42d8fb9c5f11cf5f4e0d93226'
     },
     'PIGMAN': {
-        'name': 'Pigman', 
+        'name': 'Pigman',
         'stats': {
             'strength': lambda lvl: lvl // 2
         }, # lvl * 0.4 damage and lvl * 0.2 strength to Pigman Sword (All), Additional Damage lvl * 0.25% to mobs above lvl 100 (Slayers, Legendary)
@@ -330,7 +330,7 @@ pet_stats = {
         'icon': '/head/63d9cb6513f2072e5d4e426d70a5557bc398554c880d4e7b7ec8ef4945eb02f2'
     },
     'WOLF': {
-        'name': 'Wolf', 
+        'name': 'Wolf',
         'stats': {
             'crit damage': lambda lvl: lvl // 10
         },
@@ -338,14 +338,14 @@ pet_stats = {
         'icon': '/head/dc3dd984bb659849bd52994046964c22725f717e986b12d548fd169367d494'
     },
     'OCELOT': {
-        'name': 'Ocelot', 
+        'name': 'Ocelot',
         'stats': {
         },
         'type': 'foraging',
         'icon': '/head/5657cd5c2989ff97570fec4ddcdc6926a68a3393250c1be1f0b114a1db1'
     },
     'LION': {
-        'name': 'Lion', 
+        'name': 'Lion',
         'stats': {
             'damage': lambda lvl: lvl * 0.2,
             'strength': lambda lvl: lvl // 2
@@ -354,7 +354,7 @@ pet_stats = {
         'icon': '/head/38ff473bd52b4db2c06f1ac87fe1367bce7574fac330ffac7956229f82efba1'
     },
     'ENDER_DRAGON': {
-        'name': 'Dragon', 
+        'name': 'Dragon',
         'stats': {
             'strength': lambda lvl: lvl // 2,
             'crit chance': lambda lvl: lvl // 10,
@@ -364,14 +364,14 @@ pet_stats = {
         'icon': '/head/aec3ff563290b13ff3bcc36898af7eaa988b6cc18dc254147f58374afe9b21b9'
     },
     'GUARDIAN': {
-        'name': 'Guardian', 
+        'name': 'Guardian',
         'stats': {
         },
         'type': 'fishing',
         'icon': '/head/221025434045bda7025b3e514b316a4b770c6faa4ba9adb4be3809526db77f9d'
     },
     'ENDERMAN': {
-        'name': 'Enderman', 
+        'name': 'Enderman',
         'stats': {
             'crit damage': lambda lvl: lvl * 0.75
         },
@@ -379,14 +379,14 @@ pet_stats = {
         'icon': '/head/6eab75eaa5c9f2c43a0d23cfdce35f4df632e9815001850377385f7b2f039ce1'
     },
     'BLUE_WHALE': {
-        'name': 'Whale', 
+        'name': 'Whale',
         'stats': {
         },
         'type': 'fishing',
         'icon': '/head/dab779bbccc849f88273d844e8ca2f3a67a1699cb216c0a11b44326ce2cc20'
     },
     'GIRAFFE': {
-        'name': 'Giraffe', 
+        'name': 'Giraffe',
         'stats': {
             # No info :(
         },
@@ -394,7 +394,7 @@ pet_stats = {
         'icon': '/head/6eab75eaa5c9f2c43a0d23cfdce35f4df632e9815001850377385f7b2f039ce1'
     },
     'PHOENIX': {
-        'name': 'Phoenix', 
+        'name': 'Phoenix',
         'stats': {
             'strength': lambda lvl: lvl // 2 + 10
         },
@@ -402,14 +402,14 @@ pet_stats = {
         'icon': '/head/23aaf7b1a778949696cb99d4f04ad1aa518ceee256c72e5ed65bfa5c2d88d9e'
     },
     'BEE': {
-        'name': 'Bee', 
+        'name': 'Bee',
         'stats': {
         },
         'type': 'farming',
         'icon': '/head/7e941987e825a24ea7baafab9819344b6c247c75c54a691987cd296bc163c263'
     },
     'MAGMA_CUBE': {
-        'name': 'Magma Cube', 
+        'name': 'Magma Cube',
         'stats': {
             'strength': lambda lvl: lvl // 5
         }, # Additonal Damage lvl * 0.25% to slimes (All), Ember Armor Stats boost lvl * 1% (Legendary)
@@ -417,7 +417,7 @@ pet_stats = {
         'icon': '/head/38957d5023c937c4c41aa2412d43410bda23cf79a9f6ab36b76fef2d7c429'
     },
     'FLYING_FISH': {
-        'name': 'Flying Fish', 
+        'name': 'Flying Fish',
         'stats': {
             'strength': lambda lvl: lvl // 2
         }, # Diver's Armor Stats boost lvl * 0.3% (Legendary)
@@ -432,7 +432,7 @@ pet_stats = {
         'icon': '/head/01433be242366af126da434b8735df1eb5b3cb2cede39145974e9c483607bac'
     },
     'PARROT': {
-        'name': 'Parrot', 
+        'name': 'Parrot',
         'stats': {
             'crit damage': lambda lvl: lvl // 10
         }, # lvl * 0.25 + 5 strength to nearby players (Legendary)
@@ -440,7 +440,7 @@ pet_stats = {
         'icon': '/head/5df4b3401a4d06ad66ac8b5c4d189618ae617f9c143071c8ac39a563cf4e4208'
     },
     'TIGER': {
-        'name': 'Tiger', 
+        'name': 'Tiger',
         'stats': {
             'strength': lambda lvl: lvl // 10 + 5,
             'crit chance': lambda lvl: lvl // 20,
@@ -450,21 +450,21 @@ pet_stats = {
         'icon': '/head/fc42638744922b5fcf62cd9bf27eeab91b2e72d6c70e86cc5aa3883993e9d84'
     },
     'TURTLE': {
-        'name': 'Turtle', 
+        'name': 'Turtle',
         'stats': {
         },
         'type': 'combat',
         'icon': '/head/212b58c841b394863dbcc54de1c2ad2648af8f03e648988c1f9cef0bc20ee23c'
     },
     'BLAZE': {
-        'name': 'Blaze', 
+        'name': 'Blaze',
         'stats': {
         }, # Blaze Armor Stats boost lvl * 0.4% (All), 2x Hot Potato Books (Legendary),
         'type': 'combat',
         'icon': '/head/b78ef2e4cf2c41a2d14bfde9caff10219f5b1bf5b35a49eb51c6467882cb5f0'
     },
     'JERRY': {
-        'name': 'Jerry', 
+        'name': 'Jerry',
         'stats': {
         },
         'type': 'combat',
@@ -585,7 +585,7 @@ pet_stats = {
         'icon': '/head/e4b45cbaa19fe3d68c856cd3846c03b5f59de81a480eec921ab4fa3cd81317'
     }
 }
-        
+
 fairy_soul_hp_bonus = [
 	3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8,
 	8, 9, 9, 10, 10, 11, 11, 12, 12,
@@ -626,7 +626,7 @@ tiered_talismans = {
 	'ZOMBIE_RING': ['ZOMBIE_ARTIFACT'],
 	'ZOMBIE_TALISMAN': ['ZOMBIE_RING', 'ZOMBIE_ARTIFACT']
  }
-		
+
 reforges = {
     'clean': (
         {'strength': 0, 'crit chance': 0, 'crit damage': 0, 'attack speed': 1, 'health': 1, 'defense': 1, 'speed': 1,

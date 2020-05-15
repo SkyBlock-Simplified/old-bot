@@ -14,6 +14,8 @@ import asyncio
 import discord
 import os
 import skypy
+import requests
+from constants import skills, cosmetic_skills
 skypy.enable_advanced_mode()
 
 
@@ -21,10 +23,10 @@ TIME_FORMAT = '%m/%d %I:%M %p UTC'
 
 if os.environ.get('API_KEY') is None:
     import dotenv
-
     dotenv.load_dotenv()
-keys = os.getenv('API_KEY').split()
 
+keys = os.getenv('API_KEY').split()
+prefix = os.getenv('TOKEN', 'sbs')
 
 class EndSession(Exception):
     def __init__(self, message=''):
@@ -99,6 +101,7 @@ LEADERBOARDS = {
     'enchanting': ('📖', lambda player: player.skill_xp['enchanting'], lambda player: player.skills['enchanting']),
     'alchemy': ('⚗', lambda player: player.skill_xp['alchemy'], lambda player: player.skills['alchemy']),
     'fishing': ('🎣', lambda player: player.skill_xp['fishing'], lambda player: player.skills['fishing']),
+    'taming': ('🐣', lambda player: player.skill_xp['taming'], lambda player: player.skills['taming']),
     'carpentry': ('🪑', lambda player: player.skill_xp['carpentry'], lambda player: player.skills['carpentry']),
     'runecrafting': ('⚜️', lambda player: player.skill_xp['runecrafting'], lambda player: player.skills['runecrafting']),
     'zombie': ('🧟', lambda player: player.slayer_xp['zombie'], lambda player: player.slayers['zombie']),
@@ -385,6 +388,9 @@ class Embed(discord.Embed):
     def add_field(self, *, name, value, inline=True):
         return super().add_field(name=f'**{name}**' if name else self.nbst, value=value or self.nbst, inline=inline)
 
+    def set_image(self, url):
+        return super().set_image(url=url)
+
     async def send(self):
         return await self.channel.send(self.user.mention if self.user else None, embed=self)
 
@@ -622,10 +628,6 @@ def chunks(lst, n):
     }
 },
 '''
-
-token = os.getenv('TOKEN')
-
-
 class Bot(discord.AutoShardedClient):
     def __init__(self, *args, **kwargs):
         self.callables = {}
@@ -659,6 +661,10 @@ class Bot(discord.AutoShardedClient):
                     'news': {
                         'function': self.view_trending,
                         'desc': f'Displays the top three Skyblock threads from the past {trending_timeout} hours'
+                    },
+                    'wiki': {
+                        'function': self.view_fandom_wiki,
+                        'desc': f'Displays [Skyblock Fandom Wiki](https://hypixel-skyblock.fandom.com) Article'
                     }
                 }
             },
@@ -741,6 +747,9 @@ class Bot(discord.AutoShardedClient):
 
         super().__init__(*args, **kwargs)
 
+        self.loop.run_in_executor(None, update_trending)
+
+
     async def log(self, *args):
         print(*args, sep='')
 
@@ -769,20 +778,22 @@ class Bot(discord.AutoShardedClient):
             return
 
         channel = message.channel
-        dm = channel == user.dm_channel
+        dm = channel.type == discord.ChannelType.private
 
         if channel in self.hot_channels and self.hot_channels[channel] == user:
             return
 
         command = message.content[1:] if message.content.startswith('!') else message.content
 
-        if command == self.user.mention:
+        if command == f'<@!{self.user.id}>' or command == f'<@{self.user.id}>':
             await self.help(message)
             return
 
         command = re.split('\s+', command)
-        command[0] = command[0].lower()
-        if command[0] == self.user.mention or command[0].lower() == token:
+        command[0] = command[0].casefold()
+        if command[0] == f'<@!{self.user.id}>' or command[0] == f'<@{self.user.id}>':
+            command = command[1:]
+        elif command[0] == prefix:
             command = command[1:]
         elif not dm:
             return
@@ -790,27 +801,25 @@ class Bot(discord.AutoShardedClient):
         if not command:
             return
 
-        name = command[0].lower()
+        name = command[0].casefold()
         args = command[1:]
 
         if name not in self.callables:
             return
 
-        '''
-        whitelisted_servers = [int(server)
-                                   for server in os.getenv('SERVERS').split()]
-        if not dm and not channel.guild.id in whitelisted_servers and len(channel.guild.members) > 50:
-            await Embed(
-                channel,
-                user=user,
-                title='Donate 20$ to my PayPal to use Skyblock Simplified on this server',
-                description='https://www.paypal.com/pools/c/8mstSPhQNO'
-            ).set_footer(
-                text='Free for servers under 50 members'
-            ).send()
-            await self.log('Paywal enforced in server {guild.name}')
-            return
-        '''
+        # whitelisted_servers = [int(server)
+        #                            for server in os.getenv('SERVERS').split()]
+        # if not dm and not channel.guild.id in whitelisted_servers and len(channel.guild.members) > 50:
+        #     await Embed(
+        #         channel,
+        #         user=user,
+        #         title='Donate 20$ to my PayPal to use Skyblock Simplified on this server',
+        #         description='https://www.paypal.com/pools/c/8mstSPhQNO'
+        #     ).set_footer(
+        #         text='Free for servers under 50 members'
+        #     ).send()
+        #     await self.log('Paywal enforced in server {guild.name}')
+        #     return
 
         data = self.callables[name]
         security = data['security'] if 'security' in data else 0
@@ -827,7 +836,7 @@ class Bot(discord.AutoShardedClient):
                 f'{user.mention} you do not have permission to use this command here! Try using it on your own discord server')
             return
 
-        await self.log(f'{user.name} used {name} {args} in {"a DM" if dm else channel.guild.name}')
+        await self.log(f'{str(user)} used {name} {args} in {"a DM" if dm else channel.guild.name}')
 
         if session:
             self.hot_channels[channel] = user
@@ -897,7 +906,7 @@ class Bot(discord.AutoShardedClient):
 
         if session:
             self.hot_channels.pop(channel)
-        
+
         if error:
             raise error from None
 
@@ -912,9 +921,9 @@ class Bot(discord.AutoShardedClient):
             except KeyError:
                 await channel.send(f'{user.mention} invalid profile!')
                 return None
-                
+
         # await update_top_players(player)
-        
+
         return player
 
     async def no_args(self, command, user, channel):
@@ -939,14 +948,14 @@ class Bot(discord.AutoShardedClient):
         player = await self.args_to_player(user, channel, *args)
 
         auctions = await player.auctions()
-        
+
         if not auctions:
             await Embed(channel, user=user, title='no auctions found').send()
-        
+
         async def pages(page_num):
             target = auctions[page_num]
             item = target['item']
-            
+
             embed = Embed(
                 channel,
                 user=user,
@@ -955,15 +964,15 @@ class Bot(discord.AutoShardedClient):
                 name=None,
                 value=minecraft_to_discord(item.description)
             )
-            
+
             return embed, page_num == len(auctions) - 1
-        
+
         await self.book(user, channel, pages)
 
     async def royalty(self, message, *args):
         global db
         lb = db.leaderboards
-    
+
         user = message.author
         channel = message.channel
 
@@ -971,8 +980,8 @@ class Bot(discord.AutoShardedClient):
 
         current = 'Skill Average'
         while True:
-            emoji, function, optional_function = LEADERBOARDS[current.lower()]
-        
+            emoji, function, optional_function = LEADERBOARDS[current.casefold()]
+
             embed = Embed(
                 channel,
                 user=user,
@@ -981,9 +990,9 @@ class Bot(discord.AutoShardedClient):
             )
 
             players = []
-            
+
             cursor = lb.find().sort(current, -1).limit(30)
-            
+
             i = 0
             if optional_function:
                 for d in await cursor.to_list(length=None):
@@ -1007,7 +1016,7 @@ class Bot(discord.AutoShardedClient):
                     value=('```css\n' + '\n'.join(players) + '```') if players else r'```¯\_(ツ)_/¯```',
                     inline=False
                 )
-        
+
             msg = await embed.send()
             current = await self.reaction_menu(msg, user, menu)
             current = current.title()
@@ -1062,14 +1071,14 @@ class Bot(discord.AutoShardedClient):
         if size == 0:
             await channel.send(f'{user.mention} there haven\'t been any `{itemname}` sold recently')
             return
-            
+
         small, big = min(auctions), max(auctions)
         mid = median(auctions)
         lower, upper = mid / 10, mid * 10
-        
+
         steals = [a for a in auctions if lower >= a]
         auctions = [a for a in auctions if lower < a < upper]
-        
+
         mid = median(auctions)
         avg = mean(auctions)
         common = mode(auctions)
@@ -1176,12 +1185,12 @@ class Bot(discord.AutoShardedClient):
             if r:
                 for auction in r:
                     item = auction['itemData']
-                    
+
                     try:
                         seller, _ = await skypy.fetch_uuid_uname(auction['seller'])
                     except skypy.ExternalAPIError:
                         seller = '[error fetching name]'
-                    
+
                     embed.add_field(
                         name=f'{item["quantity"]}x {item["name"].upper()}',
                         value=f'```diff\n! {int(auction["highestBidAmount"]):,} coins\n'
@@ -1204,23 +1213,40 @@ class Bot(discord.AutoShardedClient):
             return
 
         player = await self.args_to_player(user, channel, *args)
-            
+
         player.load_all(False)
 
         api_header = ' '.join(f'{k.capitalize()} {"✅" if v else "❌"}' for k, v in player.enabled_api.items())
         pet = player.pet
         pet_line = f'\nPet > {format_pet(pet)}' if pet else ''
 
+        total_level = 0
+        total_xp = 0
+        for name, (emoji, function, optional_function) in LEVELS.items():
+            if name in skills and not name in cosmetic_skills:
+                total_level += optional_function(player)
+                total_xp += function(player)
+
         embed = Embed(
             channel,
             user=user,
             title=f'{player.uname} | {player.profile_name}',
             description=f'```{api_header}```\n'
-                        f'```Skill Average > {player.skill_average:.2f}{"*" if player.uuid in EXPLOITERS else ""}\n'
-                        f'Deaths > {player.deaths}\n'
+                        f'```Deaths > {player.deaths}\n'
                         f'Guild > {player.guild}\n'
-                        f'Money > {player.bank_balance + player.purse:,.0f}\n'
-                        f'Slots > {player.minion_slots} ({player.unique_minions} crafts){pet_line}```'
+                        f'Money > {player.bank_balance + player.purse:,.0f}{pet_line}```'
+        ).add_field(
+            name=f'🔰 \t Skills',
+            value=f'''```diff
+Avg > {player.skill_average:.2f}{"*" if player.uuid in EXPLOITERS else ""}
+xp: {total_xp:,.0f}
+{(total_level / (len(skills) - len(cosmetic_skills)) / 50 * 100):.1f}% Maxed```'''
+        ).add_field(
+            name=f'🛠️ \t Minions',
+            value=f'''```diff
+Slots > {player.minion_slots}
+Uniques: {player.unique_minions}
+{(player.unique_minions / 572 * 100):.1f}% Maxed```'''
         ).set_thumbnail(
             url=player.avatar()
         )
@@ -1228,27 +1254,30 @@ class Bot(discord.AutoShardedClient):
         def percent_to_max(current, activity):
             if activity == 'runecrafting':
                 return 100 * min(1, current / skypy.runecrafting_xp_requirements[-1])
-            
+
             if activity in skypy.slayers:
                 return 100 * min(1, current / skypy.slayer_level_requirements[activity][-1])
-                
+
             return 100 * min(1, current / skypy.skill_xp_requirements[-1])
 
         for name, (emoji, function, optional_function) in LEVELS.items():
             current = function(player)
-            percent = percent_to_max(current, name.lower())
-            percent_line = '' if percent == 100 else f'\n{percent:.1f}% maxed'
-        
+            percent = percent_to_max(current, name.casefold())
+            percent_line = '+ Maxed' if percent == 100 else f'{percent:.1f}% maxed'
+
             embed.add_field(
                 name=f'{emoji}\t{name.capitalize()}',
-                value=f'```Level > {optional_function(player)}\nxp: {current:,}{percent_line}```'
+                value=f'''```diff
+Level > {optional_function(player)}
+xp: {current:,}
+{percent_line}```'''
             )
 
         if player.uuid in EXPLOITERS:
-            embed.add_field(name='Cheater', value=f'***Player has bug abused or excessively macroed skill(s)**', inline=True)
-            
+            embed.add_field(name='Cheater', value=f'***Player has bug abused or excessively macroed skill(s)**', inline=False)
+
         await embed.send()
-        
+
     async def pets(self, message, *args):
         user = message.author
         channel = message.channel
@@ -1258,24 +1287,25 @@ class Bot(discord.AutoShardedClient):
             return
 
         player = await self.args_to_player(user, channel, *args)
-            
+
         player.load_pets()
 
         pets = '\n'.join(p.name for p in player.pets)
 
-        embed = Embed(
-            channel,
-            user=user,
-            title=f'{player.uname} | {player.profile_name}'
-        ).set_thumbnail(
-            url=player.avatar()
-        )
-        
         if player.pets:
+            best_pets = {}
+            pet_score = 0
+            bonus_mf = 0
+            chunk_num = 0
             for chunk in chunks(sorted(player.pets, key=lambda pet: (pet.active, pet.xp), reverse=True), 18):
-                best_pets = {}
-                pet_score = 0
-                bonus_mf = 0
+                chunk_num += 1
+                embed = Embed(
+                    channel,
+                    user=user,
+                    title=f'{player.uname} | {player.profile_name}'
+                ).set_thumbnail(
+                    url=player.avatar()
+                )
                 for pet in chunk:
                     if best_pets.get(pet.internal_name, False):
                         if RARITY_SCORES[pet.rarity] > best_pets[pet.internal_name]:
@@ -1284,26 +1314,27 @@ class Bot(discord.AutoShardedClient):
                         best_pets[pet.internal_name] = RARITY_SCORES[pet.rarity]
                     progress = 100 * pet.xp / (pet.xp + pet.xp_remaining)
                     progress = f'\n{progress:.2f}% to 100' if progress < 100 else ''
-                    
+
                     value = colorize(
                         f'Level > {pet.level}\nxp: {pet.xp:,.0f}{progress}',
                         YELLOW if pet.active else WHITE
                     )
-                
+
                     pin = '\t📌' if pet.active else ''
                     embed.add_field(
                         name=f'{PET_EMOJIS[pet.internal_name]}\t{pet.name}{pin}',
                         value=value + colorize(pet.rarity.upper(), RARITY_COLORS[pet.rarity])
                     )
-                for x in best_pets:
-                    pet_score += best_pets[x]
-                for x in [10,25,50,85,125]:
-                    bonus_mf += 1 if pet_score >= x else 0
-                embed.add_field(
-                    name=f'Pet Score',
-                    value=f'You gain {pet_score} points from {len(best_pets)} types. (+{bonus_mf} Magic Find)',
-                    inline=False
-                )
+                if chunk_num - 1 == len(player.pets) // 18:
+                    for x in best_pets:
+                        pet_score += best_pets[x]
+                    for x in [10,25,50,85,125]:
+                        bonus_mf += 1 if pet_score >= x else 0
+                    embed.add_field(
+                        name=f'Pet Score',
+                        value=f'You gain {pet_score} points from {len(best_pets)} types. (+{bonus_mf} Magic Find)',
+                        inline=False
+                    )
                 await embed.send()
         else:
             embed.add_field(name=None, value='```❌ no pets found```')
@@ -1317,7 +1348,7 @@ class Bot(discord.AutoShardedClient):
             await self.no_args('guild', user, channel)
             return
 
-        args = ' '.join(args).lower()
+        args = ' '.join(args).casefold()
 
         guild = await skypy.Guild(keys, gname=args)
         guild.load_all(False)
@@ -1412,13 +1443,13 @@ class Bot(discord.AutoShardedClient):
     async def optimize_talismans(self, message, *args):
         user = message.author
         channel = message.channel
-        
+
         valid = False
         while valid is False:
             await channel.send(f'{user.mention} what is your Minecraft username?')
             msg = await self.respond(user, channel)
 
-            msg = msg.content.lower()
+            msg = msg.content.casefold()
 
             player = await skypy.Player(keys, uname=msg)
             if len(player.profiles) == 0:
@@ -1459,11 +1490,11 @@ class Bot(discord.AutoShardedClient):
         if player.enabled_api['skills'] is False or player.enabled_api['inventory'] is False:
             await self.api_disabled(f'{user.name}, your API is disabled!', channel, user)
             return
-        
+
         if len(player.weapons) == 0:
             await channel.send(f'{user.mention}, you have `no weapons` in your inventory. If you have any items in your inventory or backpacks with no rarity, this will stop sbs from finding your weapons. If you do not have any, DM uwu your profile.')
             return
-            
+
         if len(player.weapons) == 1:
             weapon = player.weapons[0]
         else:
@@ -1481,9 +1512,9 @@ class Bot(discord.AutoShardedClient):
                     value=''.join([f'```{i + 1} > ' + weapon.name + '```' for i, weapon in enumerate(player.weapons)])
                 ).send()
 
-                msg = (await self.respond(user, channel)).content.lower()
+                msg = (await self.respond(user, channel)).content.casefold()
 
-                names = [weapon.name.lower() for weapon in player.weapons]
+                names = [weapon.name.casefold() for weapon in player.weapons]
 
                 if msg in names:
                     weapon = player.weapons[names.index(msg)]
@@ -1494,7 +1525,7 @@ class Bot(discord.AutoShardedClient):
                         valid = True
                     except (IndexError, TypeError, ValueError):
                         await channel.send(f'Invalid weapon! Did you make a typo?{CLOSE_MESSAGE}')
-                        
+
         pet = player.pet
 
         embed = Embed(
@@ -1506,7 +1537,7 @@ class Bot(discord.AutoShardedClient):
             value=f'```{weapon.name}```',
             inline=False
         ).add_field(
-            name=f'{PET_EMOJIS[pet.internal_name] if pet else '🐣'}\tPet',
+            name=f'{PET_EMOJIS[pet.internal_name] if pet else "🐣"}\tPet',
             value=f'```{format_pet(pet) if pet else None}```',
             inline=False
         )
@@ -1524,7 +1555,7 @@ class Bot(discord.AutoShardedClient):
                 colorize(
                     f'{amount} {Route.rarity_grammar(name).capitalize()}',
                     RARITY_COLORS[name]
-                ) 
+                )
                 for name, amount in player.talisman_counts().items())
         )
 
@@ -1563,14 +1594,14 @@ class Bot(discord.AutoShardedClient):
                 if yn is True:
                     for name, amount in buff.items():
                         stats[name] += amount
-        
+
         potion_cc = stats['crit chance']
-        
+
         optimizers = [
             ('💯', 'perfect crit chance'),
             ('⚔️', 'maximum damage')
         ]
-        
+
         embed = Embed(
             channel,
             user=user,
@@ -1600,7 +1631,7 @@ class Bot(discord.AutoShardedClient):
         if pet:
             apply_stats(pet.stats())
         weapon_damage = stats['damage']
-        
+
         apply_stats(player.talisman_stats(include_reforges=True))
         cur_str = stats['strength']
         cur_cc = stats['crit chance']
@@ -1628,7 +1659,7 @@ class Bot(discord.AutoShardedClient):
             opt_goal,
             player,
             weapon_damage,
-            base_str, 
+            base_str,
             base_cc,
             base_cd
         )
@@ -1660,7 +1691,7 @@ class Bot(discord.AutoShardedClient):
                     value=r'```¯\_(ツ)_/¯```',
                     inline=False
                 )
-        
+
         def emod(activity):
             result = 0
             for enchantment in ACTIVITIES[activity]:
@@ -1671,45 +1702,45 @@ class Bot(discord.AutoShardedClient):
                     else:
                         result += value * weapon.enchantments[enchantment]
             return result
-        
+
         base_mod = stats['enchantment modifier'] + player.skills['combat'] * 4
         zealot_mod = emod('zealots') + base_mod
         slayer_mod = emod('slayer bosses') + base_mod
-        
+
         if weapon.internal_name == 'REAPER_SWORD':
             slayer_mult = 3
         elif weapon.internal_name == 'SCORPION_FOIL':
             slayer_mult = 2.5
         else:
             slayer_mult = 1
-        
+
         zealot_damage = skypy.damage(weapon_damage, cur_str, cur_cd, zealot_mod)
         slayer_damage = skypy.damage(weapon_damage, cur_str, cur_cd, slayer_mod)
         slayer_damage *= slayer_mult
-        
+
         zealot_damage_after = skypy.damage(weapon_damage, best_str, best_cd, zealot_mod)
         slayer_damage_after = skypy.damage(weapon_damage, best_str, best_cd, slayer_mod)
         slayer_damage_after *= slayer_mult
-        
+
         embed.add_field(
             name='**Before**',
             value=f'```{cur_str:.0f} strength\n{cur_cd:.0f} crit damage\n{cur_cc - potion_cc:.0f} crit chance```'
                   f'```{zealot_damage:,.0f} to zealots\n{slayer_damage:,.0f} to slayers```'
         )
-        
+
         embed.add_field(
             name='**After**',
             value=f'```{best_str:.0f} strength\n{best_cd:.0f} crit damage\n{best_cc - potion_cc:.0f} crit chance```'
                   f'```{zealot_damage_after:,.0f} to zealots\n{slayer_damage_after:,.0f} to slayers```'
         )
-            
+
         if zealot_damage > zealot_damage_after or slayer_damage > slayer_damage_after:
             embed.set_footer(
                 text=f'Even though you will be dealing less damage, you will gain {best_cc - cur_cc} crit chance'
             )
-            
+
         await embed.send()
-        
+
     async def calculate_damage(self, message, *args):
         channel = message.channel
         user = message.author
@@ -1721,7 +1752,7 @@ class Bot(discord.AutoShardedClient):
             'weapon damage': f'{user.mention} how much **damage** does your weapon have on the tooltip?',
             'combat level': f'{user.mention} what is your **combat level**?'
         }
-        
+
         for stat in stats.keys():
             await channel.send(questions[stat])
             resp = await self.respond(user, channel)
@@ -1748,7 +1779,7 @@ class Bot(discord.AutoShardedClient):
         while True:
             await embed.send()
 
-            resp = (await self.respond(user, channel)).content.lower()
+            resp = (await self.respond(user, channel)).content.casefold()
 
             if resp in ACTIVITIES:
                 break
@@ -1765,7 +1796,7 @@ class Bot(discord.AutoShardedClient):
             if callable(perk):
                 modifier += perk(enchant_levels[enchantment])
             else:
-                modifier += perk * enchant_levels[enchantment]				  
+                modifier += perk * enchant_levels[enchantment]
 
         damage = round(skypy.damage(
             stats['weapon damage'],
@@ -1799,7 +1830,7 @@ class Bot(discord.AutoShardedClient):
             return
 
         player = await self.args_to_player(user, channel, *args)
-            
+
         player.load_inventories()
 
         if player.enabled_api['inventory'] is False:
@@ -1841,9 +1872,6 @@ class Bot(discord.AutoShardedClient):
         user = message.author
         channel = message.channel
 
-        if user.dm_channel != channel:
-            await channel.send(f'Sent you a DM with the information {user.mention}!')
-
         dm = user.dm_channel or await user.create_dm()
 
         embed = Embed(
@@ -1884,6 +1912,9 @@ class Bot(discord.AutoShardedClient):
             ).set_footer(
                 text='Skyblock Simplified for Hypixel Skyblock | Created by notnotmelon#7218'
             )
+
+        if channel.type != discord.ChannelType.private:
+            await channel.send(f'Sent you a DM with the information {user.mention}!')
 
         while True:
             msg = await embed.send()
@@ -1953,7 +1984,7 @@ class Bot(discord.AutoShardedClient):
                                       timeout=60 * 3)
         except asyncio.TimeoutError:
             raise EndSession
-        if msg.content.lower() == 'exit':
+        if msg.content.casefold() == 'exit':
             raise EndSession
 
         return msg
@@ -1989,15 +2020,15 @@ class Bot(discord.AutoShardedClient):
         forward = {'➡️': 1}
         both = {'⬅️': -1, '➡️': 1}
 
-        if user.dm_channel != channel and channel.guild.me.permissions_in(channel).manage_messages:
+        if channel.type != discord.ChannelType.private and channel.guild.me.permissions_in(channel).manage_messages:
             r = await pages(page_num)
             embed, last_page = r
-            
+
             msg = await embed.send()
             while True:
                 if page_num == 0 and last_page is True:
                     return
-                
+
                 if page_num == 0:
                     result = await self.reaction_menu(msg, user, forward, edit=True)
                 elif last_page is True:
@@ -2005,20 +2036,20 @@ class Bot(discord.AutoShardedClient):
                 else:
                     result = await self.reaction_menu(msg, user, both, edit=True)
                 page_num += result
-                
+
                 r = await pages(page_num)
                 embed, last_page = r
-                
+
                 await msg.edit(embed=embed)
         else:
             while True:
                 r = await pages(page_num)
                 embed, last_page = r
-            
+
                 msg = await embed.send()
                 if page_num == 0 and last_page is True:
                     return
-                    
+
                 if page_num == 0:
                     result = await self.reaction_menu(msg, user, forward, edit=False)
                 elif last_page is True:
@@ -2031,7 +2062,7 @@ class Bot(discord.AutoShardedClient):
     async def view_trending(self, message, *args):
         channel = message.channel
         user = message.author
-        
+
         embed = Embed(
             channel,
             user=user,
@@ -2055,6 +2086,32 @@ class Bot(discord.AutoShardedClient):
 
         await embed.send()
 
+    async def view_fandom_wiki(self, message, *args):
+        channel = message.channel
+        user = message.author
+
+        name = ''
+        fs = False
+        for x in args:
+            name += '_' if fs else ''
+            fs = True
+            name += x
+
+        article = fandom_wiki(name)
+
+        embed = Embed(
+            channel,
+            user=user,
+            title=article.title,
+            description=article.description
+        ).set_footer(
+            text=f'CC BY-SA-NC 3.0 https://hypixel-skyblock.fandom.com'
+        )
+        if article.image:
+            embed.set_image(article.image)
+
+        await embed.send()
+
     async def api_disabled(self, title, channel, user):
         await Embed(
             channel,
@@ -2070,7 +2127,7 @@ class Bot(discord.AutoShardedClient):
             message.channel,
             user=message.author,
             title='Here\'s a link to my support server',
-            description='[https://discord.gg/8Wbh3p7]'
+            description='[https://discord.gg/sbs]'
         ).set_footer(
             text='(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧'
         ).send()
@@ -2091,12 +2148,15 @@ async def craftlink(user, channel, query, *, operation, **kwargs):
         'variables': dict(kwargs),
         'query': query
     }
-    
+
     try:
         async with (await skypy.session()).post(url, json=json) as r:
             return (await r.json(content_type=None))['data']
-    except (asyncio.exceptions.TimeoutError, ClientError, ValueError):
+    except asyncio.exceptions.TimeoutError:
         await channel.send(f'{user.mention} {url} did not respond after 30 seconds')
+        return None
+    except (ClientError, ValueError):
+        await channel.send(f'{user.mention} {url} did not respond')
         return None
 
 client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv('DATABASE_URI'))
@@ -2105,36 +2165,36 @@ db = client.sbs
 async def update_top_players(player):
     global db
     lb = db.leaderboards
-    
+
     player.load_skills_slayers(False).load_collections(False)
-    
+
     try:
         if player.uuid in EXPLOITERS:
             for offence in EXPLOITERS[player.uuid]:
                 player.skills[offence] *= -1
             player.skill_average = sum(list(player.skills.values())[0:7]) / 7
-        
+
         document = {
             'name': player.uname,
             'uuid': player.uuid
         }
-        
+
         for name, (emoji, function, optional_function) in LEADERBOARDS.items():
             document[name.title()] = function(player)
             if optional_function:
                 document[f'{name.title()}_'] = optional_function(player)
     except AttributeError:
-        await client.log(f'Failed to add {player.uname} to leaderboards')
+        await Bot.log(f'Failed to add {player.uname} to leaderboards')
         return
-    
+
     await lb.replace_one({'uuid': player.uuid}, document, upsert=True)
-    await client.log(f'Leaderboard updated for {player.uname}')
+    await Bot.log(f'Leaderboard updated for {player.uname}')
 
 # Forums parsing ---
 trending_threads = []
 last_forums_update = datetime.now()
 num_trending = 6
-trending_timeout = int(os.getenv('TRENDING_TIMEOUT'))
+trending_timeout = int(os.getenv('TRENDING_TIMEOUT', 30))
 
 def trending_algorithm(thread):
     return (thread['views'] + thread['likes'] * 200) / math.sqrt(thread['date'] / 1000 + 1)
@@ -2158,7 +2218,7 @@ def update_trending():
 
         try:
             while True:
-                loop.run_until_complete(client.log(f'Attempting to parse forums page {pagenumber}'))
+                loop.run_until_complete(Bot.log(f'Attempting to parse forums page {pagenumber}'))
 
                 soup = BeautifulSoup(
                     s.get(f'https://hypixel.net/forums/skyblock.157/page-{pagenumber}?order=post_date').content,
@@ -2181,7 +2241,7 @@ def update_trending():
                     thread['views'] = int(info.find(class_='minor').dd.string.replace(',', ''))
                     thread['replies'] = int(info.find(class_='major').dd.string.replace(',', ''))
                     thread['date'] = int(post.find(class_='posterDate muted').find('abbr')['data-time'])
-    
+
                     if now is None:
                         now = thread['date']
 
@@ -2198,19 +2258,68 @@ def update_trending():
         except Timeout:
             now = datetime.now(timezone.utc)
             last_forums_update = now
-            loop.run_until_complete(client.log(
+            loop.run_until_complete(Bot.log(
                 f'Trending threads updated at {now.strftime(TIME_FORMAT)}. {pagenumber} pages parsed\n',
                 '\n'.join([thread['link'] for thread in trending_threads])
             ))
 
         except (Nothing, RuntimeError):
             now = datetime.now(timezone.utc)
-            loop.run_until_complete(client.log(f'Failed to parse forums at {now.strftime(TIME_FORMAT)}'))
+            loop.run_until_complete(Bot.log(f'Failed to parse forums at {now.strftime(TIME_FORMAT)}'))
             trending_threads = backup
-            
+
         loop.run_until_complete(asyncio.sleep(3600 * 2))
 
+s = requests.Session()
+
+class fandom_wiki:
+    def __init__(self, name):
+        if name == None or name == '':
+            name = 'Hypixel_SkyBlock_Wiki'
+        url = 'https://hypixel-skyblock.fandom.com/wiki/' + name
+        code = s.get(url)
+        code = code.text
+        soup = BeautifulSoup(code, 'lxml')
+        self.title = None
+        for x in soup.select('h1'):
+            if 'page-header__title' in x.get('class', []):
+                self.title = x.text
+        self.image = None
+        for x in soup.select('img'):
+            if 'pi-image-thumbnail' in x.get('class', []):
+                self.image = x.get('src')
+                break
+        for x in soup.select('aside'):
+            if 'portable-infobox' in x.get('class', []):
+                x.decompose()
+        self.description = None
+        for x in soup.select('p'):
+            self.description = x.text
+            if 'not found. What do you want to do?' in self.description:
+                for x in soup.select('span'):
+                    if 'alternative-suggestion' in x.get('class', []):
+                        article = fandom_wiki(x.text)
+                        self.title = article.title
+                        self.description = article.description
+                        self.image = article.image
+                        return
+            elif 'What do you want to do?' in self.description:
+                self.description = f'Could not find the article named {self.title}.'
+                break
+            elif 'caption' in x.get('class', []):
+                self.description = None
+            elif 'category-page__total-number' in x.get('class', []):
+                try:
+                    self.description = f'This category has no information, but {x.text.split("(")[1].split(")")[0]} articles are in the category.'
+                except IndexError:
+                    self.description = 'This category has no information.'
+                break
+            else:
+                break
+        if not self.description:
+            if name.split(":")[0] == self.title:
+                self.description = f'could not find any text. This usually happens when the article exists but has no text or when the article has malformed raw data.'
+            else:
+                self.description = f'could not find the {name.split(":")[0]} named {self.title}.'
+
 discord.Embed = None  # Disable default discord Embed
-client = Bot()
-client.loop.run_in_executor(None, update_trending)
-client.run(os.getenv('DISCORD_TOKEN'))

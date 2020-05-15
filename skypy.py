@@ -91,7 +91,7 @@ def decode_inventory_data(raw):
 def level_from_xp_table(xp, table):
 	"""Takes a list of xp requirements and a xp value.
 	Returns whatever level the thing should be at"""
-	
+
 	for level, requirement in enumerate(table):
 		if requirement > xp:
 			break
@@ -105,10 +105,10 @@ class Item:
 
 		self.stack_size = self.__nbt__.get('Count', 1)
 		self.slot_number = slot_number
-		
+
 		tag = nbt.get('tag', {})
-		extras = tag.get('ExtraAttributes', {})		
-		
+		extras = tag.get('ExtraAttributes', {})
+
 		self.description = tag.get('display', {}).get('Lore', [])
 		self.description_clean = [re.sub('§.', '', line) for line in self.description]
 		self.description = '\n'.join(self.description)
@@ -117,13 +117,13 @@ class Item:
 		self.collection_date = extras.get('timestamp', '') # 'timestamp': '2/16/20 9:24 PM',
 		self.runes = extras.get('runes', {}) # 'runes': {'ZOMBIE_SLAYER': 3},
 		self.enchantments = extras.get('enchantments', {})
-		self.reforge = extras.get('modifier', None)			
-			
+		self.reforge = extras.get('modifier', None)
+
 		if self.description_clean:
 			rarity_type = self.description_clean[-1].split()
 			self.rarity = rarity_type[0].lower()
 			self.type = rarity_type[1].lower() if len(rarity_type) > 1 else None
-			
+
 			if self.internal_name != 'ENCHANTED_BOOK':
 				for type, list in {'sword': sword_enchants, 'bow': bow_enchants, 'fishing rod': rod_enchants}.items():
 					for e in list:
@@ -133,7 +133,7 @@ class Item:
 		else:
 			self.rarity = None
 			self.type = None
-			
+
 		self.name = re.sub('§.', '', self['tag']['display']['Name'])
 
 	def __getitem__(self, name):
@@ -156,9 +156,9 @@ class Item:
 	def stats(self, use_reforge=True):
 		results = {}
 		name = self.internal_name
-				
+
 		reforge_multiplier = 1
-		
+
 		# §7Attack Speed: §c+2% §8(Itchy +2%)
 		# §7Intelligence: §a+9 §c(Godly +3)
 		reg = re.compile(
@@ -177,12 +177,12 @@ class Item:
 			match = reg.match(line)
 			if match:
 				results[match[1].lower()] = int(match[2])
-				
+
 		def add(stat, amount):
 			results[stat] = results.get(stat, 0) + amount
 
 		end_defence = {'END_HELMET': 35, 'END_CHESTPLATE': 60, 'END_LEGGINGS': 50, 'END_BOOTS': 25}
-				
+
 		if name == 'RECLUSE_FANG':
 			add('strength', 370)
 		elif name == 'THE_SHREDDER':
@@ -220,11 +220,11 @@ def damage(weapon_dmg, strength, crit_dmg, ench_modifier):
 
 async def fetch_uuid_uname(uname_or_uuid, _depth=0):
 	s = await session()
-	
+
 	class TryNormal(Exception):
 		#A simple exception that lets us exit mcheads
 		pass
-	
+
 	try:
 		async with s.get(f'https://mc-heads.net/minecraft/profile/{uname_or_uuid}') as r:
 			if r.status == 204:
@@ -233,22 +233,22 @@ async def fetch_uuid_uname(uname_or_uuid, _depth=0):
 			if json is None:
 				raise TryNormal
 			return json['name'], json['id']
-			
+
 	except (asyncio.TimeoutError, TryNormal):
 		# if mcheads fails, we try the normal minecraft API
 		try:
 			async with s.get(f'https://api.mojang.com/users/profiles/minecraft/{uname_or_uuid}') as r:
-			
+
 				json = await r.json(content_type=None)
 				if json is None:
-				
+
 					async with s.get(f'https://api.mojang.com/user/profiles/{uname_or_uuid}/names') as r:
 						json = await r.json(content_type=None)
 						if json is None:
 							raise BadNameError(uname_or_uuid, 'Malformed uuid or username') from None
-							
+
 						return json[-1]['name'], uname_or_uuid
-					
+
 				return json['name'], json['id']
 		except asyncio.TimeoutError:
 			raise ExternalAPIError('Could not connect to https://mc-heads.net') from None
@@ -266,7 +266,7 @@ class Pet:
 	@staticmethod
 	def from_API(data):
 		cls = Pet()
-	
+
 		cls.xp = data.get('exp', 0)
 		cls.active = data.get('active', False)
 		cls.rarity = data.get('tier', 'COMMON').lower()
@@ -275,15 +275,15 @@ class Pet:
 		cls.name = pet_stats[cls.internal_name]['name']
 		cls.title = f'[Lvl {cls.level}] {cls.name}'
 		cls.xp_remaining = pet_xp[cls.rarity][-1] - cls.xp
-		
+
 		return cls
-		
+
 	def __str__(self):
 		return self.name
-		
+
 	def __repr__(self):
 		return self.name
-		
+
 	def stats(self):
 		"""Returns a dictionary of this pet's stats"""
 		return {stat: function(self.level) for stat, function in pet_stats[self.internal_name]['stats'].items()}
@@ -307,37 +307,37 @@ class ApiInterface:
 	async def __call_api__(self, api, **kwargs):
 		kwargs['key'] = self.__next_key__()
 		url = f'https://api.hypixel.net{api}'
-		
+
 		try:
 			async with (await session()).get(url, params=kwargs) as data:
 				data = await data.json(content_type=None)
-				
+
 				if data['success']:
 					return data
-					
+
 				elif data['cause'] == 'Invalid API key!':
 					raise APIKeyError(kwargs["key"], f'Invalid API key!')
-					
+
 				else:
 					raise ExternalAPIError(data['cause'])
-					
+
 		except asyncio.TimeoutError:
 			return await self.__call_api__(api, **kwargs)
-			
+
 		except aiohttp.client_exceptions.ClientResponseError as e:
 			if e.code == 429 or e.code == 403:
 				await asyncio.sleep(1.5)
 				return await self.__call_api__(api, **kwargs)
-				
+
 			elif e.code == 500:
 				raise HypixelError(f'Hypixel\'s servers could not complete your request')
-				
+
 			else:
 				raise e from None
-	
+
 	async def __new__(cls, keys, *args, **kwargs):
 		instance = super().__new__(cls)
-		
+
 		instance.__loads__ = {
 			'pets': False,
 			'inventories': False,
@@ -347,14 +347,14 @@ class ApiInterface:
 			'banking': False,
 			'misc': False
 		}
-		
+
 		if isinstance(keys, str):
 			instance._api_keys = [keys]
 		else:
 			instance._api_keys = keys
 
 		instance.__key_id__ = 0
-		
+
 		await instance.__init__(*args, **kwargs)
 		return instance
 
@@ -385,7 +385,7 @@ class Guild(ApiInterface):
 		self.gxp = v.get('exp', 0)
 		self.tag = v.get('tag')
 		self.description = v.get('description')
-		
+
 		xp = self.gxp
 		for level, requirement in enumerate(guild_level_requirements):
 			if xp >= requirement:
@@ -402,7 +402,7 @@ class Guild(ApiInterface):
 				self.players.append(player)
 			except NeverPlayedSkyblockError:
 				pass
-		
+
 		if profile_selection:
 			await asyncio.gather(*[
 				player.set_profile_automatically(
@@ -416,22 +416,22 @@ class Guild(ApiInterface):
 					threshold=profile_selection_threshold
 				) for player in self
 			])
-		
+
 		if _advancedmode is False:
 			for player in self:
 				player.load_all()
-		
+
 			self.load_all()
-		
+
 	def load_skills_slayers(self, raise_on_double=True):
 		if self._check_loads('skills slayers', raise_on_double):
 			return self
-			
+
 		for player in self:
 			player.load_skills_slayers(False)
-	
+
 		l = len(self)
-		
+
 		if l == 0:
 			self.skill_average = {skill: 0 for skill in skills}
 			self.skills = {skill: 0 for skill in skills}
@@ -455,57 +455,57 @@ class Guild(ApiInterface):
 				slayer: sum(player.slayer_xp[slayer] for player in self) / l
 				for slayer in slayers
 			}
-		
+
 		return self
-		
+
 	def load_collections(self, raise_on_double=True):
 		if self._check_loads('collections', raise_on_double):
 			return self
-	
+
 		for player in self:
 			player.load_collections(False)
-	
+
 		l = len(self)
-		
+
 		if l == 0:
 			self.unique_minions = 0
 			self.minion_slots = 0
 		else:
-			self.unique_minions = sum(player.unique_minions for player in self) / l			
+			self.unique_minions = sum(player.unique_minions for player in self) / l
 			self.minion_slots = sum(player.minion_slots for player in self) / l
-		
+
 		return self
-		
+
 	def load_banking(self, raise_on_double=True):
 		if self._check_loads('banking', raise_on_double):
 			return self
-			
+
 		for player in self:
 			player.load_banking(False)
-		
+
 		l = len(self)
-		
+
 		if l == 0:
 			self.bank_balance = 0
 			self.purse = 0
 		else:
-			self.bank_balance = sum(player.bank_balance for player in self) / l			
+			self.bank_balance = sum(player.bank_balance for player in self) / l
 			self.purse = sum(player.purse for player in self) / l
 
 		return self
-		
+
 	def load_deaths(self, raise_on_double=True):
 		if self._check_loads('deaths', raise_on_double):
 			return self
-			
+
 		for player in self:
 			player.load_deaths(False)
-			
+
 		self.kills = sum(player.kills for player in self)
 		self.deaths = sum(player.deaths for player in self)
-			
+
 		return self
-		
+
 	def load_all(self, raise_on_double=True):
 		return self.load_skills_slayers(raise_on_double).load_collections(raise_on_double).load_banking(raise_on_double).load_deaths(raise_on_double)
 
@@ -550,12 +550,12 @@ class Player(ApiInterface):
 
 				for k, v in profile_ids.items():
 					self.profiles[v['cute_name']] = k
-					
+
 			except (KeyError, TypeError):
 				raise NeverPlayedSkyblockError(self.uname) from None
 			if not self.profiles:
 				raise NeverPlayedSkyblockError(self.uname)
-			
+
 		if guild:
 			id = (await self.__call_api__('/findGuild', byUuid=self.uuid))['guild']
 			if id:
@@ -566,13 +566,13 @@ class Player(ApiInterface):
 				self.guild_id = None
 				self.guild_info = None
 				self.guild = None
-				
+
 		self._profile_set = False
 
 	@classmethod
 	def from_raw(cls, uname, uuid, data, achievements):
 		cls.uname, cls.uuid
-		
+
 		return cls
 
 	def __str__(self):
@@ -593,20 +593,20 @@ class Player(ApiInterface):
 		example: player.set_profile_automatically(lambda player: player.skill_xp['combat'])"""
 		best = None
 		max = 0
-		
+
 		async def create_canidate(profile):
 			player = await Player(
 				self._api_keys,
-				uname=self.uname, 
+				uname=self.uname,
 				uuid=self.uuid,
 				_profiles=self.profiles,
 				_achivements=self.achievements
 			)
 			await player.set_profile(profile)
 			return player
-		
+
 		profile_ids = list(self.profiles.values())
-		
+
 		if threshold:
 			best = profile_ids[0]
 			for profile in reversed(profile_ids):
@@ -614,7 +614,7 @@ class Player(ApiInterface):
 					canidate = await create_canidate(profile)
 				except HypixelError:
 					continue
-					
+
 				if attribute(canidate) >= threshold:
 					best = profile
 					break
@@ -628,18 +628,18 @@ class Player(ApiInterface):
 						best = canidate.profile
 				except HypixelError:
 					pass
-				
+
 		await self.set_profile(best)
 
 	def load_pets(self, raise_on_double=True):
 		"""Loads all of a player's pets into RAM
 		Returns the player for efficent function chaining"""
-		
+
 		if self._check_loads('pets', raise_on_double):
 			return self
-			
+
 		v = self._api_data['members'][self.uuid]
-	
+
 		self.pets = []
 		self.pet = None
 		if 'pets' in v:
@@ -648,9 +648,9 @@ class Player(ApiInterface):
 				self.pets.append(pet)
 				if pet.active:
 					self.pet = pet
-		
+
 		return self
-	
+
 	@staticmethod
 	def _parse_inventory(v, *path):
 		try:
@@ -660,14 +660,14 @@ class Player(ApiInterface):
 			return decode_inventory_data(result)
 		except KeyError:
 			return []
-	
+
 	def load_inventories(self, raise_on_double=True):
 		"""Loads all of a player's inventories into RAM (inventory, armor, enderchest, quiver, ect)
 		Returns the player for efficent function chaining"""
 		if self._check_loads('inventories', raise_on_double):
 			return self
 		v = self._api_data['members'][self.uuid]
-	 
+
 		self.inventory = Player._parse_inventory(v, 'inv_contents', 'data')
 		self.echest = Player._parse_inventory(v, 'ender_chest_contents', 'data')
 		self.armor = Player._parse_inventory(v, 'inv_armor', 'data')
@@ -682,7 +682,7 @@ class Player(ApiInterface):
 			self.enabled_api['inventory'] = True
 
 		self.talismans = [talisman for talisman in self.inventory + self.talisman_bag if talisman.type == 'accessory']
-		
+
 		for talisman in self.talismans:
 			talisman.active = True
 
@@ -697,7 +697,7 @@ class Player(ApiInterface):
 					if other in self.talismans:
 						talisman.active = False
 						break
-		
+
 		return self
 
 	@staticmethod
@@ -722,44 +722,44 @@ class Player(ApiInterface):
 	def load_collections(self, raise_on_double=True):
 		"""Loads a player's minion slots and collections into RAM
 		Returns the player for efficent function chaining"""
-		
+
 		if self._check_loads('collections', raise_on_double):
 			return self
 		v = self._api_data['members'][self.uuid]
-		
+
 		try:
 			self.collections = {name.lower().replace('_', ' '): level for name, level in v['collection'].items()}
 			self.enabled_api['collection'] = True
-			
+
 		except KeyError:
 			self.collections = {}
-			
+
 		self.unlocked_collections = Player._parse_collection(v, 'unlocked_coll_tiers')
 		self.minions = Player._parse_collection(v, 'crafted_generators')
-		
+
 		self.unique_minions = max(
 			self.achievements.get('skyblock_minion_lover', 0),
 			sum(self.minions.values())
 		)
 
 		self.minion_slots = level_from_xp_table(self.unique_minions, minion_slot_requirements)
-		
+
 		return self
-	
+
 	def load_skills_slayers(self, raise_on_double=True):
 		"""Loads a player's skill and slayer data into RAM
 		Returns the player for efficent function chaining"""
-		
+
 		if self._check_loads('skills slayers', raise_on_double):
 			return self
 		v = self._api_data['members'][self.uuid]
-		
+
 		if 'experience_skill_farming' in v:
 			self.enabled_api['skills'] = True
-			
+
 			self.skill_xp = {}
 			self.skills = {}
-			
+
 			for skill in skills:
 				xp = int(v.get(f'experience_skill_{skill}', 0))
 				self.skill_xp[skill] = xp
@@ -769,7 +769,7 @@ class Player(ApiInterface):
 				)
 		else:
 			self.enabled_api['skills'] = False
-			
+
 			self.skill_xp = {
 				'carpentry': 0,
 				'runecrafting': 0
@@ -778,7 +778,7 @@ class Player(ApiInterface):
 				'carpentry': 0,
 				'runecrafting': 0
 			}
-			
+
 			for skill, achievement in [
 					('farming', 'skyblock_harvester'),
 					('mining', 'skyblock_excavator'),
@@ -786,9 +786,10 @@ class Player(ApiInterface):
 					('combat', 'skyblock_combat'),
 					('enchanting', 'skyblock_augmentation'),
 					('alchemy', 'skyblock_concoctor'),
-					('fishing', 'skyblock_angler')
+					('fishing', 'skyblock_angler'),
+					('taming', 'no achievement')
 				]:
-				
+
 				level = self.achievements.get(achievement, 0)
 				self.skills[skill] = level
 				self.skill_xp[skill] = 0 if level == 0 else skill_xp_requirements[level - 1]
@@ -801,73 +802,73 @@ class Player(ApiInterface):
 			xp = v.get('slayer_bosses', {}).get(slayer, {}).get('xp', 0)
 			self.slayer_xp[slayer] = xp
 			self.slayers[slayer] = level_from_xp_table(xp, slayer_level_requirements[slayer])
-			
+
 		self.total_slayer_xp = sum(self.slayer_xp.values())
-		
+
 		return self
-	
+
 	def load_deaths(self, raise_on_double=True):
 		"""Loads a player's kills and deaths into RAM
 		Returns the player for efficent function chaining"""
-	
+
 		if self._check_loads('deaths', raise_on_double):
 			return self
 		v = self._api_data['members'][self.uuid]
-	
+
 		self.kills = int(v.get('stats', {'kills': 0}).get('kills', 0))
 		self.specifc_kills = {name.replace('kills_', '').replace('_', ' '): int(amount)
 							  for name, amount in v['stats'].items() if re.match('kills_', name)}
 		self.deaths = int(v.get('stats', {'deaths': 0}).get('deaths', 0))
 		self.specifc_deaths = {name.replace('deaths_', '').replace('_', ' '): int(amount)
 							   for name, amount in v['stats'].items() if re.match('deaths_', name)}
-							  
+
 		return self
-	
+
 	def load_banking(self, raise_on_double=True):
 		"""Loads a player's bank balance and purse into RAM
 		Returns the player for efficent function chaining"""
-		
+
 		if self._check_loads('banking', raise_on_double):
 			return self
-		
+
 		if 'banking' in self._api_data:
 			self.enabled_api['banking'] = True
 			self.bank_balance = float(self._api_data['banking'].get('balance', 0))
 		else:
 			self.bank_balance = 0
-	
+
 		self.purse = float(self._api_data['members'][self.uuid].get('coin_purse', 0))
-		
+
 		return self
-	
+
 	def load_misc(self, raise_on_double=True):
 		"""Loads a player's misc stats into RAM
 		Returns the player for efficent function chaining"""
-		
+
 		if self._check_loads('misc', raise_on_double):
 			return self
 		v = self._api_data['members'][self.uuid]
-		
+
 		self.join_date = datetime.fromtimestamp(v.get('first_join', 0) / 1000.0)
 		self.fairy_souls_collected = v.get('fairy_souls_collected', 0)
-	
+
 		return self
-	
+
 	def load_all(self, raise_on_double=True):
 		"""Loads the entire player API output into RAM
 		Called automatically if you have not used skypy.enable_advanced_mode()
 		Returns the player for efficent function chaining"""
-		
+
 		return self.load_pets(raise_on_double).load_inventories(raise_on_double).load_collections(raise_on_double).load_skills_slayers(raise_on_double).load_deaths(raise_on_double).load_banking(raise_on_double).load_misc(raise_on_double)
 
 	async def set_profile(self, profile):
 		"""Sets a player's profile based on the provided profile ID"""
 		global _advancedmode
-		
+
 		if self._profile_set == True:
 			raise DataError('This player already has their profile set!')
 		self._profile_set = True
-		
+
 		self.profile = profile
 		for cute_name, id in self.profiles.items():
 			if id == profile:
@@ -878,7 +879,7 @@ class Player(ApiInterface):
 
 		self._api_data = (await self.__call_api__('/skyblock/profile', profile=self.profile))['profile']
 		self.enabled_api = {'skills': False, 'collection': False, 'inventory': False, 'banking': False}
-		
+
 		if _advancedmode is False:
 			self.load_all()
 
@@ -927,7 +928,7 @@ class Player(ApiInterface):
 		return stats
 
 	def armor_stats(self, include_reforges=True):
-		stats = {}		
+		stats = {}
 		for armor in self.armor:
 			for stat, amount in armor.stats().items():
 				stats[stat] = stats.get(stat, 0) + amount
