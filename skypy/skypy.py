@@ -605,11 +605,15 @@ class Player(ApiInterface):
 
 		self.talismans = [talisman for talisman in self.inventory + self.talisman_bag if talisman.type in ('accessory', 'hatccessory')]
 
+		talismans_dup = []
+
 		for talisman in self.talismans:
 			talisman.active = True
 			# Check for duplicate talismans
 			if self.talismans.count(talisman) > 1:
 				talisman.active = False
+				if not talisman in talismans_dup:
+					talismans_dup.append(talisman)
 				continue
 
 			# Check for talisman families
@@ -618,6 +622,9 @@ class Player(ApiInterface):
 					if other in self.talismans:
 						talisman.active = False
 						break
+
+		for talisman in talismans_dup:
+			talisman.active=True
 
 		#Loads a player's minion slots and collections
 		try:

@@ -191,7 +191,8 @@ tiered_talismans = {
 	'SPEED_TALISMAN': ['SPEED_RING', 'SPEED_ARTIFACT'],
 	'PERSONAL_COMPACTOR_4000': ['Personal Compactor 5000', 'Personal Compactor 6000'],
 	'PERSONAL_COMPACTOR_5000': ['Personal Compactor 6000'],
-	'CAT_TALISMAN': ['LYNX_TALISMAN', 'CHEETAH_TALISMAN']
+	'CAT_TALISMAN': ['LYNX_TALISMAN', 'CHEETAH_TALISMAN'],
+	'LYNX_TALISMAN': ['CHEETAH_TALISMAN']
 }
 
 # reforges = {

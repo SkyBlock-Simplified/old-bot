@@ -516,7 +516,7 @@ def damage_optimizer(player, *, perfect_crit_chance, include_attack_speed, only_
     armor_types = [type for type, piece in player.armor.items() if armor_check(type) == 'armor' and piece]
     equipment_types = ['talisman', player.weapon.type] + armor_types
     counts = {
-        'talisman': {rarity: sum(talisman.rarity == rarity for talisman in player.talismans) for rarity in rarities},
+        'talisman': {rarity: sum(talisman.rarity == rarity for talisman in player.talismans if talisman.active) for rarity in rarities},
         player.weapon.type: {rarity: int(player.weapon.rarity == rarity) for rarity in rarities},
         'helmet': {rarity: int(player.armor['helmet'].rarity == rarity) for rarity in rarities} if player.armor[
             'helmet'] else {rarity: 0 for rarity in rarities},
