@@ -30,8 +30,8 @@ class EndSession(Exception):
 
 damage_potions = {
     'dungeon': {
-        'stats': {'strength': [0, 20], 'crit chance': [0, 10], 'crit damage': [0, 10], 'speed': [0, 5], 'defense': [0, 5]},
-        'levels': [0, 1]
+        'stats': {'strength': [0, 20, 20, 20], 'crit chance': [0, 10, 10, 15], 'crit damage': [0, 10, 10, 20], 'speed': [0, 5, 10, 10], 'defense': [0, 5, 5, 10]},
+        'levels': [0, 1, 3]
     },
     'critical': {
         'stats': {'crit chance': [0, 10, 15, 20, 25], 'crit damage': [0, 10, 20, 30, 40]},

@@ -70,6 +70,7 @@ talismans = {re.compile(k): v for k, v in {
 	'LAVA_TALISMAN': 'Lava Talisman',
 	'SCAVENGER_TALISMAN': 'Scavenger Talisman',
 	'WOLF_PAW': 'Wolf Paw',
+	'CAT_TALISMAN': 'Cat Talisman',
 	'FIRE_TALISMAN': 'Fire Talisman',
 	'PIGS_FOOT': 'Pig\'s Foot',
 	'FROZEN_CHICKEN': 'Frozen Chicken',
@@ -80,6 +81,7 @@ talismans = {re.compile(k): v for k, v in {
 	'NEW_YEAR_CAKE_BAG': 'New Year Cake Bag',
 	'NIGHT_CRYSTAL': 'Night Crystal',
 	'DAY_CRYSTAL': 'Day Crystal',
+	'LYNX_TALISMAN': 'Lynx Talisman',
 	'FEATHER_ARTIFACT': 'Feather Artifact',
 	'ARTIFACT_POTION_AFFINITY': 'Potion Affinity Artifact',
 	'HEALING_RING': 'Healing Ring',
@@ -188,7 +190,8 @@ tiered_talismans = {
 	'SPEED_RING': ['SPEED_ARTIFACT'],
 	'SPEED_TALISMAN': ['SPEED_RING', 'SPEED_ARTIFACT'],
 	'PERSONAL_COMPACTOR_4000': ['Personal Compactor 5000', 'Personal Compactor 6000'],
-	'PERSONAL_COMPACTOR_5000': ['Personal Compactor 6000']
+	'PERSONAL_COMPACTOR_5000': ['Personal Compactor 6000'],
+	'CAT_TALISMAN': ['LYNX_TALISMAN', 'CHEETAH_TALISMAN']
 }
 
 # reforges = {

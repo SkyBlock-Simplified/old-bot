@@ -177,6 +177,10 @@ class Item:
 				self.stats.__iadd__('speed', 3)
 			elif name == 'SPEED_ARTIFACT':
 				self.stats.__iadd__('speed', 5)
+			elif name == 'CAT_TALISMAN':
+				self.stats.__iadd__('speed', 1)
+			elif name == 'LYNX_TALISMAN':
+				self.stats.__iadd__('speed', 2)
 			elif name == 'CHEETAH_TALISMAN':
 				self.stats.__iadd__('speed', 3)
 			# elif name == 'PARTY_HAT_CRAB':
