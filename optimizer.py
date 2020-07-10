@@ -94,9 +94,19 @@ damage_reforges = {
             'rare': {'strength': 40, 'crit damage': 25},
             'epic': {'strength': 50, 'crit damage': 32},
             'legendary': {'strength': 60, 'crit damage': 40},
-            'mythic': {'strength': 75, 'crit damage': 60},
+            'mythic': {'strength': 75, 'crit damage': 50},
             'blacksmith': False
-        }
+        },
+        'suspicious': {
+            # Increase wep dmg +15
+            'common': {'crit chance': 1, 'crit damage': 30},
+            'uncommon': {'crit chance': 2, 'crit damage': 40},
+            'rare': {'crit chance': 3, 'crit damage': 50},
+            'epic': {'crit chance': 5, 'crit damage': 65},
+            'legendary': {'crit chance': 7, 'crit damage': 85},
+            'mythic': {'crit chance': 10, 'crit damage': 100},
+            'blacksmith': False
+        },
     },
     'bow': {
         'awkward': {
@@ -309,26 +319,6 @@ damage_reforges = {
             'mythic': {'strength': 15, 'defense': 15, 'speed': 2, 'health': 15, 'crit chance': 15, 'crit damage': 15, 'intelligence': 15, 'attack speed': 6},
             'blacksmith': False
         },
-        'cubic': {
-            # Decrease damage taken from nether mobs by 2% (needs more info if stacking)
-            'common': {'strength': 3, 'health': 5},
-            'uncommon': {'strength': 5, 'health': 7},
-            'rare': {'strength': 7, 'health': 10},
-            'epic': {'strength': 10, 'health': 15},
-            'legendary': {'strength': 12, 'health': 20},
-            'mythic': {'strength': 15, 'health': 30},
-            'blacksmith': False
-        },
-        'warped': {
-            # Gain +1/2/3/4/5 Speed icon Speed for 5s
-            'common': {'strength': 2, 'speed': 1, 'attack speed': 2},
-            'uncommon': {'strength': 4, 'speed': 1, 'attack speed': 3},
-            'rare': {'strength': 6, 'speed': 2, 'attack speed': 4},
-            'epic': {'strength': 7, 'speed': 2, 'attack speed': 5},
-            'legendary': {'strength': 10, 'speed': 3, 'attack speed': 6},
-            'mythic': {'strength': 12, 'speed': 4, 'attack speed': 7},
-            'blacksmith': False
-        }
     },
     'talisman': {
 		'bizarre': {
@@ -437,6 +427,15 @@ damage_reforges = {
             'epic': {'crit damage': 10},
             'legendary': {'crit damage': 15},
             'mythic': {'crit damage': 20},
+            'blacksmith': False
+        },
+        'bloody': {
+            'common': {'strength': 1, 'crit damage': 3, 'attack speed': 1, 'speed': 1},
+            'uncommon': {'strength': 1, 'crit damage': 4, 'attack speed': 1, 'speed': 1},
+            'rare': {'strength': 1, 'crit damage': 5, 'attack speed': 1, 'speed': 1},
+            'epic': {'strength': 2, 'crit damage': 6, 'attack speed': 2, 'speed': 1},
+            'legendary': {'strength': 3, 'crit damage': 9, 'attack speed': 2, 'speed': 1},
+            'mythic': {'strength': 4, 'crit damage': 12, 'attack speed': 3, 'speed': 1},
             'blacksmith': False
         },
     }

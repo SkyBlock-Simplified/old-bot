@@ -285,9 +285,19 @@ tiered_talismans = {
 # 			'rare': {'strength': 40, 'crit damage': 25},
 # 			'epic': {'strength': 50, 'crit damage': 32},
 # 			'legendary': {'strength': 60, 'crit damage': 40},
-# 			'mythic': {'strength': 75, 'crit damage': 60},
+# 			'mythic': {'strength': 75, 'crit damage': 50},
 # 			'blacksmith': False
-# 		}
+# 		},
+# 		'suspicious': {
+# 			# Increase wep dmg +15
+# 			'common': {'crit chance': 1, 'crit damage': 30},
+# 			'uncommon': {'crit chance': 2, 'crit damage': 40},
+# 			'rare': {'crit chance': 3, 'crit damage': 50},
+# 			'epic': {'crit chance': 5, 'crit damage': 65},
+# 			'legendary': {'crit chance': 7, 'crit damage': 85},
+# 			'mythic': {'crit chance': 10, 'crit damage': 100},
+# 			'blacksmith': False
+# 		},
 # 	},
 # 	'bow': {
 # 		'awkward': {
@@ -370,6 +380,16 @@ tiered_talismans = {
 # 			'legendary': {'strength': 25, 'crit chance': 13, 'crit damage': 50},
 # 			'mythic': {'strength': 34, 'crit chance': 15, 'crit damage': 75},
 # 			'blacksmith': True
+# 		},
+# 		'precise': {
+# 			# Deal +10% Extra Damage when arrows hit the head of a mob.
+# 			'common': {'strength': 3, 'crit chance': 8, 'crit damage': 5},
+# 			'uncommon': {'strength': 7, 'crit chance': 9, 'crit damage': 10},
+# 			'rare': {'strength': 12, 'crit chance': 10, 'crit damage': 18},
+# 			'epic': {'strength': 18, 'crit chance': 11, 'crit damage': 32},
+# 			'legendary': {'strength': 25, 'crit chance': 13, 'crit damage': 50},
+# 			'mythic': {'strength': 34, 'crit chance': 15, 'crit damage': 75},
+# 			'blacksmith': False
 # 		}
 # 	},
 # 	'armor': {
@@ -455,30 +475,32 @@ tiered_talismans = {
 # 			'blacksmith': True
 # 		},
 # 		'necrotic': {
-# 			'common': {'intelligence': 50},
-# 			'uncommon': {'intelligence': 75},
-# 			'rare': {'intelligence': 100},
+# 			'common': {'intelligence': 30},
+# 			'uncommon': {'intelligence': 60},
+# 			'rare': {'intelligence': 90},
 # 			'epic': {'intelligence': 120},
 # 			'legendary': {'intelligence': 150},
-# 			'mythic': {'intelligence': 175},
+# 			'mythic': {'intelligence': 200},
 # 			'blacksmith': False
 # 		},
 # 		'perfect': {
-# 			'common': {'defense': 10},
-# 			'uncommon': {'defense': 15},
-# 			'rare': {'defense': 25},
-# 			'epic': {'defense': 50},
-# 			'legendary': {'defense': 75},
+# 			# 2% more defense on armor
+# 			'common': {'defense': 15},
+# 			'uncommon': {'defense': 25},
+# 			'rare': {'defense': 50},
+# 			'epic': {'defense': 65},
+# 			'legendary': {'defense': 80},
 # 			'mythic': {'defense': 100},
 # 			'blacksmith': False
 # 		},
 # 		'undead': {
-# 			'common': {'strength': 1, 'defense': 9, 'health': 9, 'attack speed': 1},
-# 			'uncommon': {'strength': 2, 'defense': 12, 'health': 12, 'attack speed': 2},
-# 			'rare': {'strength': 2, 'defense': 15, 'health': 15, 'attack speed': 3},
+# 			# Reduce dmg from undead 2%
+# 			'common': {'strength': 1, 'defense': 6, 'health': 6, 'attack speed': 1},
+# 			'uncommon': {'strength': 2, 'defense': 8, 'health': 8, 'attack speed': 2},
+# 			'rare': {'strength': 2, 'defense': 12, 'health': 12, 'attack speed': 3},
 # 			'epic': {'strength': 3, 'defense': 18, 'health': 18, 'attack speed': 4},
-# 			'legendary': {'strength': 5, 'defense': 23, 'health': 23, 'attack speed': 5},
-# 			'mythic': {'strength': 7, 'defense': 25, 'health': 25, 'attack speed': 6},
+# 			'legendary': {'strength': 5, 'defense': 25, 'health': 25, 'attack speed': 5},
+# 			'mythic': {'strength': 7, 'defense': 40, 'health': 40, 'attack speed': 6},
 # 			'blacksmith': False
 # 		},
 # 		'spiked': {
@@ -718,6 +740,15 @@ tiered_talismans = {
 # 			'epic': {'crit damage': 10},
 # 			'legendary': {'crit damage': 15},
 # 			'mythic': {'crit damage': 20},
+# 			'blacksmith': False
+# 		},
+# 		'bloody': {
+# 			'common': {'strength': 1, 'crit damage': 3, 'attack speed': 1, 'speed': 1},
+# 			'uncommon': {'strength': 1, 'crit damage': 4, 'attack speed': 1, 'speed': 1},
+# 			'rare': {'strength': 1, 'crit damage': 5, 'attack speed': 1, 'speed': 1},
+# 			'epic': {'strength': 2, 'crit damage': 6, 'attack speed': 2, 'speed': 1},
+# 			'legendary': {'strength': 3, 'crit damage': 9, 'attack speed': 2, 'speed': 1},
+# 			'mythic': {'strength': 4, 'crit damage': 12, 'attack speed': 3, 'speed': 1},
 # 			'blacksmith': False
 # 		},
 # 	},
