@@ -431,6 +431,7 @@ class Player(ApiInterface):
 	Use weapons() and set_weapon() to retrieve and set the player's weapon."""
 
 	async def __init__(self, *, uname=None, uuid=None, guild=False, _profiles=None, _achivements=None):
+		self.online=False
 		if uname and uuid:
 			self.uname = uname
 			self.uuid = uuid
@@ -449,6 +450,8 @@ class Player(ApiInterface):
 				self.profiles = {}
 				player = await self.__call_api__('/player', uuid=self.uuid)
 				profile_ids = player['player']['stats']['SkyBlock']['profiles']
+				player_data = player['player']
+				self.online = player_data['lastLogout'] < player_data['lastLogin']
 
 				self.achievements = player['player']['achievements']
 
@@ -551,7 +554,7 @@ class Player(ApiInterface):
 	async def set_profile(self, profile):
 		"""Sets a player's profile based on the provided profile ID"""
 
-		if self._profile_set == True:
+		if self._profile_set:
 			raise DataError('This player already has their profile set!')
 		self._profile_set = True
 
@@ -562,9 +565,6 @@ class Player(ApiInterface):
 				break
 		else:
 			raise DataError('Bad profile ID!')
-
-		# Check if player is online
-		self.online = await self.is_online()
 
 		self._nbt = (await self.__call_api__('/skyblock/profile', profile=self.profile))['profile']
 		self.enabled_api = {'skills': False, 'collection': False, 'inventory': False, 'banking': False}
@@ -768,8 +768,8 @@ class Player(ApiInterface):
 				pet_ability(self)
 
 	async def is_online(self):
-		player_data = (await self.__call_api__('/status', uuid=self.uuid))['session']
-		return player_data['online']
+		player_data = (await self.__call_api__('/player', uuid=self.uuid))['player']
+		return player_data['lastLogout'] < player_data['lastLogin']
 
 	async def auctions(self):
 		r = await self.__call_api__('/skyblock/auction', uuid=self.uuid, profile=self.profile)
