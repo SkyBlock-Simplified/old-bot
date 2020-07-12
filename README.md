@@ -2,9 +2,9 @@
 Multi-purpose bot for hypixel skyblock
 
 # STATUS
-Basic functionality for Pets v2 has been implemented.
+Basic gear optimization for pre-dungeon update has been implemented.
 
 # TODO
-Pet item support
+Adding optimization for dungeon gears
 
-Dungeons Reforges
+Adding more pet/item support

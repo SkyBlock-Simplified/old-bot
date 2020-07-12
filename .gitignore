@@ -198,3 +198,6 @@ dmypy.json
 # uwu stuff
 .replit
 *.exe
+
+# test stuff
+test.py
