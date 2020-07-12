@@ -114,7 +114,7 @@ class Item:
 		extras = tag.get('ExtraAttributes', {})
 
 		self.description = tag.get('display', {}).get('Lore', [])
-		self.description_clean = [re.sub('§.', '', line) for line in self.description]
+		self.description_clean = [re.sub('§.[a-z]?', '', line) for line in self.description]
 		self.description = '\n'.join(self.description)
 		self.internal_name = extras.get('id', None)
 		name = self.internal_name if self.internal_name else None
