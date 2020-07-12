@@ -897,8 +897,7 @@ class Bot(discord.AutoShardedClient):
                 inline=False
             )
 
-        inactive = [talisman for talisman in player.talismans if
-                    talisman.active is False and talisman.internal_name != 'PERSONAL_COMPACTOR_6000']
+        inactive = [talisman for talisman in player.talismans if talisman.active is False]
 
         if inactive:
             embed.add_field(
