@@ -101,11 +101,11 @@ talismans = {re.compile(k): v for k, v in {
 	'SURVIVOR_CUBE': 'Survivor Cube',
 	'WITHER_ARTIFACT': 'Wither Artifact',
 	'WEDDING_RING_9': 'Legendary Ring of Love',
-	'SCARF_GRIMOIRE': 'Scarf\'s Grimoire',
 	'RED_CLAW_ARTIFACT': 'Red Claw Artifact',
 	'SPEED_ARTIFACT': 'Speed Artifact',
 	'BAIT_RING': 'Bait Ring',
 	'PERSONAL_COMPACTOR_6000': 'Personal Compactor 6000',
+	'SCARF_GRIMOIRE': 'Scarf\'s Grimoire',
 	'HUNTER_RING': 'Hunter Ring',
 	'SEAL_OF_THE_FAMILY': 'Seal of the Family',
 }.items()}
